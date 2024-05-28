@@ -24,6 +24,7 @@ async def chat(request: StringRequest):
     question = request.question
     llm = ChatOpenAI(api_key= OPENAI_API_KEY, model_name="gpt-3.5-turbo")
     response = llm.invoke(question)
+    
 
     return {"response":f"Hi {name} this is your response: {response.content}"}
 
