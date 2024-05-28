@@ -6,3 +6,6 @@ ENV_VARIABLES = {
     **dotenv_values(str(BASE_DIR / ".env")),  
     
 }
+
+
+OPENAI_API_KEY = ENV_VARIABLES["IGERENCIA_ALEGION_API"]

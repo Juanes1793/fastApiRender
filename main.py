@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 from langchain_openai import ChatOpenAI
-from config import ENV_VARIABLES
+from config import OPENAI_API_KEY
 
 
 
@@ -22,7 +22,7 @@ async def greet(name_request: StringRequest):
 async def chat(request: StringRequest):
     name = request.name
     question = request.question
-    llm = ChatOpenAI(api_key= ENV_VARIABLES["IGERENICA_ALEGION_API"], model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(api_key= OPENAI_API_KEY, model_name="gpt-3.5-turbo")
     response = llm.invoke(question)
 
     return {"response":f"Hi {name} this is your response: {response.content}"}
