@@ -1,34 +1,47 @@
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from langchain_openai import ChatOpenAI
-from config import OPENAI_API_KEY
-
-
+from PIL import Image
+import requests
+from io import BytesIO
+import os
 
 app = FastAPI()
 
 class StringRequest(BaseModel):
-    name: str
-    question: str
+    image_url: str
 
-@app.post("/greet")
-async def greet(name_request: StringRequest):
-    name = name_request.name
-    return {"message": f"Hello {name}"}
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL") 
 
+@app.post("/convert_image")
+async def convert_image(request: StringRequest):
+    url_image = request.image_url
+    response = requests.get(url_image)
+    img = Image.open(BytesIO(response.content))
+    grayscale_image = img.convert('L')
 
-@app.post("/chat")
-async def chat(request: StringRequest):
-    name = request.name
-    question = request.question
-    llm = ChatOpenAI(api_key= OPENAI_API_KEY, model_name="gpt-3.5-turbo")
-    response = llm.invoke(question)
-    
+    # Save the grayscale image to a BytesIO object
+    img_byte_arr = BytesIO()
+    grayscale_image.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
 
-    return {"response":f"Hi {name} this is your response: {response.content}"}
+    # Send the image to Discord
+    payload = {
+        "content": "Here is your converted image:"
+    }
+    files = {
+        "file": ("grayscale_image.png", img_byte_arr, "image/png")
+    }
+    discord_response = requests.post(DISCORD_WEBHOOK_URL, data=payload, files=files)
 
+    # Check if the request was successful
+    if discord_response.status_code == 204:
+        message = "Image successfully sent to Discord."
+    else:
+        message = "Failed to send image to Discord."
 
+    return {"message": message}
 
 # if __name__ == "__main__":
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
